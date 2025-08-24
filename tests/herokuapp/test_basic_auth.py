@@ -39,7 +39,7 @@ def _format_value(value: str | None | bool) -> str:
         pytest.param("admiń", "admiń", False, id="unicode pl (expected: reject)"),
         pytest.param("アドミン", "アドミン", False, id="unicode jp (expected: reject)"),
         # empty / none
-        pytest.param("", "", False, id="empty: ''/'' (expected: reject)"),
+        pytest.param("", "", False, id="empty: ''''/'''' (expected: reject)"),
         pytest.param(None, None, False, id="no credentials (expected: reject)"),
         pytest.param("admin", "", False, id="admin/empty (expected: reject)"),
         pytest.param("", "admin", False, id="empty/admin (expected: reject)"),
@@ -60,7 +60,8 @@ def _format_value(value: str | None | bool) -> str:
 
 def test_basic_auth(browser: Browser, username: Optional[str], password: Optional[str], is_ok: bool) -> None:
     """To check various authentication combination"""
-    logger.info(f"|| Basic Authentication Case:"
+    logger.info(f"|| Open page: {URL}")
+    logger.info(f"|| Basic Authentication Credentials:"
                 f" Login:{_format_value(username)}, Password:{_format_value(password)}"
                 f" [Expected: {_format_value(is_ok)}]")
 
