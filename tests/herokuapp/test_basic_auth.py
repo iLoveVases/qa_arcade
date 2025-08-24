@@ -1,4 +1,5 @@
 import pytest
+from typing import Optional
 from playwright.sync_api import Browser, Error, expect
 import logging
 
@@ -46,7 +47,7 @@ def _format_value(value: str | None | bool) -> str:
         pytest.param("", "wrong", False, id="empty/wrong (expected: reject)"),
         # symbols
         pytest.param(" ", " ", False, id="space/space (expected: reject)"),
-        pytest.param("@dmin", "@dmin", False, id="@ as A(expected: reject)"),
+        pytest.param("@dmin", "@dmin", False, id="@dmin/@dmin (expected: reject)"),
         pytest.param(".", ".", False, id="dot/dot (expected: reject)"),
         pytest.param("?", "?", False, id="question/question (expected: reject)"),
         pytest.param("#####", "#####", False, id="hashes (expected: reject)"),
@@ -57,7 +58,7 @@ def _format_value(value: str | None | bool) -> str:
         pytest.param("", "admin"*20, False, id="empty/very long (expected: reject)"),
     ])
 
-def test_basic_auth(browser: Browser, username: str, password: str, is_ok: bool) -> None:
+def test_basic_auth(browser: Browser, username: Optional[str], password: Optional[str], is_ok: bool) -> None:
     """To check various authentication combination"""
     logger.info(f"|| Basic Authentication Case:"
                 f" Login:{_format_value(username)}, Password:{_format_value(password)}"
@@ -65,36 +66,39 @@ def test_basic_auth(browser: Browser, username: str, password: str, is_ok: bool)
 
     if username is None and password is None:
         context = browser.new_context()
-    else: context = browser.new_context(http_credentials={"username": username, "password": password})
-    page = context.new_page()
+    else:
+        context = browser.new_context(http_credentials={"username": username, "password": password})
 
-    # correct credentials:
-    if is_ok:
-        resp = page.goto(URL)
-        assert resp is not None, "No response from page.goto()"
-        assert resp.status == 200, f"Expected 200, got {resp.status}"
-        logger.info("Check if body contains 'Congratulations'")
-        expect(page.locator("body")).to_contain_text("Congratulations")
+    try:
+        page = context.new_page()
 
-    # unauthorized page is rendered:
-    elif username is None and password is None:
-        try:
-            # for headless testing mode:
+        # correct credentials:
+        if is_ok:
+            resp = page.goto(URL)
+            assert resp is not None, "No response from page.goto()"
+            assert resp.status == 200, f"Expected 200, got {resp.status}"
+            logger.info("Check if body contains 'Congratulations'")
+            expect(page.locator("body")).to_contain_text("Congratulations")
+
+        # unauthorized page is rendered:
+        elif username is None and password is None:
+            try:
+                # for headless testing mode:
+                resp = page.goto(URL)
+                assert resp is not None, "No response from page.goto()"
+                assert resp.status == 401, f"Expected 401, got {resp.status}"
+                logger.info("|| Check if body contains 'Not authorized'")
+                expect(page.locator("body")).to_contain_text("Not authorized")
+            except Error as e:
+                # for headed testing mode:
+                assert "ERR_INVALID_AUTH_CREDENTIALS" in str(e), f"Expected 'ERR_INVALID_AUTH_CREDENTIALS', got {e}"
+
+        # invalid credentials:
+        else:
             resp = page.goto(URL)
             assert resp is not None, "No response from page.goto()"
             assert resp.status == 401, f"Expected 401, got {resp.status}"
             logger.info("|| Check if body contains 'Not authorized'")
             expect(page.locator("body")).to_contain_text("Not authorized")
-        except Error as e:
-            # for headed testing mode:
-            assert "ERR_INVALID_AUTH_CREDENTIALS" in str(e), f"Expected 'ERR_INVALID_AUTH_CREDENTIALS', got {e}"
-
-    # invalid credentials:
-    else:
-        resp = page.goto(URL)
-        assert resp is not None, "No response from page.goto()"
-        assert resp.status == 401, f"Expected 401, got {resp.status}"
-        logger.info("|| Check if body contains 'Not authorized'")
-        expect(page.locator("body")).to_contain_text("Not authorized")
-
-    context.close()
+    finally:
+        context.close()
