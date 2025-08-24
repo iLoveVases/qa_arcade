@@ -23,7 +23,7 @@ def _format_value(value: str | None | bool) -> str:
     [
         pytest.param("admin", "admin", True, id="valid credentials (expected: login)"),
         # case sensitivity
-        pytest.param("ADMIN", "ADMIN", True, id="uppercase (expected: reject)"),
+        pytest.param("ADMIN", "ADMIN", False, id="uppercase (expected: reject)"),
         pytest.param("Admin", "admin", False, id="username capitalized (expected: reject)"),
         pytest.param("admin", "Admin", False, id="password capitalized (expected: reject)"),
         pytest.param("Admin", "Admin", False, id="both capitalized (expected: reject)"),
