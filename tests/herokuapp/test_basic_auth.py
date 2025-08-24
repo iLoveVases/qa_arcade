@@ -20,7 +20,7 @@ def _format_value(value: str | None | bool) -> str:
         return value
 
 @pytest.fixture
-# hook to attach page to request for screenshot on failure
+# fixture to attach page to request for screenshot on failure
 def attach_page(request):
     def _attach(p):
         request.node._attached_page = p
