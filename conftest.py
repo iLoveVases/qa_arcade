@@ -35,13 +35,18 @@ def attach_screenshot_to_report(rep, item) -> None:
     # attach screenshot (or error) to report
     rep.extras = extras_list
 
-
+@pytest.fixture
+# fixture to attach page to request for screenshot on failure
+def attach_page(request):
+    def _attach(p):
+        request.node._attached_page = p
+        return p
+    return _attach
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
     [Hook] called by pytest for each phase of a test.
-    We delegate the real work to attach_screenshot_to_report.
     """
 
     outcome = yield # <-- Let TC be executed first

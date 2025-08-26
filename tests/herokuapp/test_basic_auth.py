@@ -19,14 +19,6 @@ def _format_value(value: str | None | bool) -> str:
     else:
         return value
 
-@pytest.fixture
-# fixture to attach page to request for screenshot on failure
-def attach_page(request):
-    def _attach(p):
-        request.node._attached_page = p
-        return p
-    return _attach
-
 @pytest.mark.parametrize(
     "username,password,is_ok",
     [
