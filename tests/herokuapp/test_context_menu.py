@@ -15,7 +15,7 @@ def _setup_page(browser: Browser, request: pytest.FixtureRequest, attach_page):
     logger.info(f"|| Open URL: {URL}")
     resp = page.goto(URL)
     logger.info(f"|| Verify if page and heading are loaded")
-    assert resp and resp.status == 200, f"Failed to load page, status: {resp.status if resp else 'no response'}"
+    assert resp and resp.status == 200, f"Failed to load page, status: {resp.status}"
     expect(page.get_by_role("heading", name="Context Menu")).to_be_visible()
     expect(page.locator("#hot-spot")).to_be_visible()
     return page
@@ -47,4 +47,4 @@ def test_context_menu_buttons(browser: Browser, attach_page, request: pytest.Fix
         assert captured_msg[0] == ALERT_TEXT, f"Unexpected alert text: {captured_msg[0]}"
     else:
         assert captured_msg[0] is None, f"Unexpected alert appeared: {captured_msg[0]}"
-    assert page.url == URL
+    assert page.url == URL, f"Unexpected URL: {page.url}"
