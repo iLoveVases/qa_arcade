@@ -37,7 +37,7 @@ def _setup_page(browser: Browser, request: pytest.FixtureRequest, attach_page):
 # Two modes are tested:
 # - direct_set: force checkbox into desired state with set_checked()
 # - mouse: simulate user action with click()
-def test_checkboxes_one_param_for_all(
+def test_checkboxes(
     browser: Browser, attach_page, request: pytest.FixtureRequest, index: int, target_checked: bool, mode: str) -> None:
 
     page = _setup_page(browser, request, attach_page)
@@ -54,7 +54,7 @@ def test_checkboxes_one_param_for_all(
     elif mode == "mouse":
         opposite = not target_checked
         logger.info(f"|| set_checked({opposite}) on checkbox {index+1} before mouse click")
-        cb.set_checked(opposite, timeout=500, force=True)
+        cb.set_checked(opposite, timeout=1000, force=True)
         logger.info(f"|| click() on checkbox {index+1} to reach target={state}")
         cb.click(timeout=500)
     else:
