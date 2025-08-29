@@ -20,22 +20,31 @@ def _setup_page(browser: Browser, request: pytest.FixtureRequest, attach_page):
     expect(page.locator("#hot-spot")).to_be_visible()
     return page
 
-
-def test_right_click_opens_alert_with_expected_text(browser: Browser, attach_page, request: pytest.FixtureRequest):
-
+@pytest.mark.parametrize(
+    "button, expect_alert",
+    [
+        pytest.param("right",  True,  id="right-click"),
+        pytest.param("left",   False, id="left-click"),
+        pytest.param("middle", False, id="middle-click")
+    ]
+)
+def test_context_menu_buttons(browser: Browser, attach_page, request: pytest.FixtureRequest,
+                              button: str, expect_alert: bool):
     page = _setup_page(browser, request, attach_page)
-    captured = {"msg": None}
 
+    captured_msg = [None]
     def _auto_accept(d):
-        captured["msg"] = d.message
+        captured_msg[0] = d.message
         d.accept()
-
     page.once("dialog", _auto_accept)
 
-    logger.info("|| Press Right Mouse Button on hot spot")
-    page.locator("#hot-spot").click(button="right", force=True, timeout=300)
+    logger.info(f"|| Click with {button} mouse button on hot spot")
+    page.locator("#hot-spot").click(button=button, force=True, timeout=300)
 
-    logger.info("|| Verify alert text and URL")
-    assert captured["msg"] is not None, "Alert did not appeared"
-    assert captured["msg"] == ALERT_TEXT, f"Unexpected alert text: {captured['msg']}"
-    assert page.url == URL, f"Unexpected URL after alert: {page.url}"
+    page.wait_for_timeout(200)
+
+    if expect_alert:
+        assert captured_msg[0] == ALERT_TEXT, f"Unexpected alert text: {captured_msg[0]}"
+    else:
+        assert captured_msg[0] is None, f"Unexpected alert appeared: {captured_msg[0]}"
+    assert page.url == URL
